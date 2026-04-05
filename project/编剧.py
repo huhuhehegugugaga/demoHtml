@@ -1,34 +1,4 @@
 
-# from google import genai
-
-# # 1. 准备：建立办事处
-# # 记得换成你刚才申请的新 Key！
-# client = genai.Client(api_key="AIzaSyBzwY0QOkxX2E9b9POfbsyAyJdwIDGhBxI")
-
-# # 2. 加工：定义一个名为 translate_to_english 的函数
-# def translate_to_english(chinese_text):
-#     """
-#     这个函数负责把中文翻译成地道的英文
-#     """
-#     # 构造一个强力的指令（Prompt Engineering）
-#     prompt = f"直接翻译成英文和日文，不要有别的多余的东西：'{chinese_text}'"
-    
-#     # 发送给 Gemini
-#     response = client.models.generate_content(
-#         model="gemini-3-flash-preview",
-#         contents=prompt
-#     )
-    
-#     # 返回翻译结果
-#     return response.text
-
-# # 3. 产出：调用函数并看结果
-# my_word = "我要炸地球"
-# english_result = translate_to_english(my_word)
-
-# print(f"中文：{my_word}")
-# print(f"{english_result}")
-
 
 
 
@@ -36,7 +6,7 @@ from google import genai
 import json
 
 # 初始化你的 Gemini 办事处
-client = genai.Client(api_key="AIzaSyBzwY0QOkxX2E9b9POfbsyAyJdwIDGhBxI")
+client = genai.Client(api_key="AIzaSyBTgfHo-9-nthuuh5oaXqexDjlWO0Lm8Yo")
 
 def 编剧_Gemini(已知词库, 正在学的新词):
     """
@@ -46,45 +16,55 @@ def 编剧_Gemini(已知词库, 正在学的新词):
     
     # --- 核心：编写“铁律”指令 (Prompt) ---
     prompt = f"""
-    你现在是一名严格的《English Through Pictures》教材编剧。
-    
-    【已知词库】：{已知词库}
-    【正在学的新词】：{正在学的新词}
-    
-    任务要求：
-    1. 造一个简单的英文句子，必须包含新词：'{正在学的新词}'。
-    2. 铁律：句子中的每一个单词，必须【只能】来自“已知词库”或“正在学的新词”。
-    3. 为这个句子设计一个极简的火柴人动作（Stickman），用来解释这个句子的意思。
-    
+    你现在是一名资深的《English Through Pictures》视觉教材导演。
 
-    请严格按照以下 JSON 格式回答，不要有任何废话：
+【已知词库】：{已知词库}
+【待学新词】：{正在学的新词}
+
+任务目标：
+创作一组“镜头连续”的连环画剧本（1-4 组），通过一个【微型故事】的递进，让学习者精准猜出【待学新词】。
+
+【钢铁纪律 - 剧情连贯性】：
+1. 角色一致：所有画面必须使用相同的火柴人角色，确保它是同一个故事的连续发生。
+2. 镜头连续：画面之间的时间跨度要极短（像电影分镜），严禁从一个场景突然跳到另一个无关场景。
+3. 视觉锚点：画面中必须有一个“参照物”保持不动（如一张桌子、一扇门），只让角色针对这个参照物做动作。
+4. 意义渐进：前几幕用已知词描述背景动作，最后一幕通过“突变”或“核心动作”引入新词。
+
+【硬性约束 - 词根守卫】：
+1. 词根准入制：句子的每一个单词，其“原始词根”必须存在于【已知词库】或【待学新词】中。
+2. 允许形态变化：允许单复数、所有格('s)、时态(-ing, -ed, -s)、代词缩写。
+3. 严禁超纲：绝对禁止引入未授权词根（除非在词库中）。
+
+【编剧指南 - 视觉逻辑】：
+1. 极简主义：只描述与词义相关的动作、神态、位置。
+2. 严禁心理：描述必须是“可见的”。不要写“他想吃”，要写“他盯着苹果，流出口水”。
+
+请按以下 JSON 数组格式输出：
+[
     {{
-        "英文句子": "生成的句子",
-        "画面描述": "描述火柴人的动作"
+        "序号": 1,
+        "画面描述": "描述同一个故事的连续画面，用英文描述，无心理活动。",
+        "英文句子": "符合语法的自然句子"
     }}
+]
     """
 
     # --- 调用 Gemini ---
     response = client.models.generate_content(
-        model="gemini-3-flash-preview",
+        model="gemini-3.1-flash-lite-preview",
         contents=prompt
     )
 
-    # --- 把 AI 返回的字符串变成 Python 字典 ---
-    # 去掉 AI 可能带有的 ```json 这种外壳
-    # 清理后的内容 = response.text.replace("```json", "").replace("```", "").strip()
-    # return json.loads(清理后的内容)
-    return response.text
+    
+    return response.text.strip("` \n").replace("json", "")
 
 # --- 让我们测试一下这个“编剧” ---
-# 我的词库 = ["I", "am", "a", "man", "is", "it"]
-# 新词 = "here"
-我的词库 = ["this", "is" ,"are","fly","they","are","kill","zombie","very","when","people","die","war","sad","run","what","how","dream","drink","driver"]
-新词 = "authority"
+
+我的词库 = ["I", "man", "the", "dog", "goat", "is", "at", "grass", "tree", "rope", "long", "short", "and", "hold", "go", "not", "away"]
+新词 = "tether"
 
 结果 = 编剧_Gemini(我的词库, 新词)
 
-# print(f"生成的句子：{结果['英文句子']}")
-# print(f"给画师的指令：{结果['画面描述']}")
+
 
 print(结果)
